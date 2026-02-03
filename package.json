@@ -1,0 +1,23 @@
+{
+  "name": "portfolio-api",
+  "version": "1.0.0",
+  "description": "Google Apps Script API for portfolio items",
+  "scripts": {
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "open": "clasp open",
+    "logs": "clasp logs",
+    "deploy": "clasp deploy"
+  },
+  "keywords": [
+    "gas",
+    "google-apps-script",
+    "api",
+    "portfolio"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@google/clasp": "^2.4.2"
+  }
+}
