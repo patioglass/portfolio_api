@@ -21,7 +21,7 @@ const DRIVE_FOLDER_ID = props.getProperty('DRIVE_FOLDER_ID'); // 画像フォル
  *     label: string;
  *     url: string;
  *   }[];
- *   isCommision: boolean;
+ *   isCommission: boolean;
  * };
  *
  * // 画像データ (?action=images)
@@ -37,7 +37,7 @@ const DRIVE_FOLDER_ID = props.getProperty('DRIVE_FOLDER_ID'); // 画像フォル
  * 2: description
  * 3: imageUrl
  * 4: tags
- * 5: isCommision
+ * 5: isCommission
  * 6: Amazon (リンク)
  * 7: DLsite (リンク)
  * 8: 公式サイト (リンク)
@@ -106,7 +106,7 @@ function getPortfolioItems() {
     description: 3,
     imageUrl: 4,
     tags: 5,
-    isCommision: 6,
+    isCommission: 6,
     Amazon: 7,
     DLsite: 8,
     公式サイト: 9,
@@ -144,7 +144,7 @@ function getPortfolioItems() {
           url: String(row[COL[key]] || '')
         }))
         .filter(link => link.url),
-      isCommision: parseBoolean(row[COL.isCommision])
+      isCommission: parseBoolean(row[COL.isCommission])
     }));
 
   return items;
