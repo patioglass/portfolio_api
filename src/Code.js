@@ -26,7 +26,7 @@ const DRIVE_FOLDER_ID = props.getProperty('DRIVE_FOLDER_ID'); // 画像フォル
  *
  * // 画像データ (?action=images)
  * type ImageData = {
- *   name: string;     // ファイル名（拡張子なし）
+ *   name: string;     // Google DriveファイルID (https://drive.google.com/open?id={name})
  *   mimeType: string; // MIMEタイプ (image/png等)
  *   data: string;     // Base64エンコードされた画像データ
  * };
@@ -157,7 +157,7 @@ function getPortfolioItems() {
  * DRIVE_FOLDER_IDはスクリプトプロパティで設定
  *
  * @returns {Array<{name: string, mimeType: string, data: string}>}
- *   - name: ファイル名（拡張子なし）
+ *   - name: Google DriveのファイルID (https://drive.google.com/open?id={name} で使用可能)
  *   - mimeType: MIMEタイプ (image/png, image/jpeg等)
  *   - data: Base64エンコードされた画像データ
  */
@@ -187,12 +187,10 @@ function getDriveImages() {
     if (imageMimeTypes.includes(mimeType)) {
       const blob = file.getBlob();
       const base64Data = Utilities.base64Encode(blob.getBytes());
-      const fileName = file.getName();
-      // 拡張子を除いたファイル名
-      const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+      const fileId = file.getId();
 
       images.push({
-        name: nameWithoutExt,
+        name: fileId,
         mimeType: mimeType,
         data: base64Data
       });
