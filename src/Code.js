@@ -1,13 +1,15 @@
 /**
- * スプレッドシートの設定
+ * スクリプトプロパティから設定を取得
  */
 const props = PropertiesService.getScriptProperties();
 const SPREADSHEET_ID = props.getProperty('SPREADSHEET_ID');
-const SHEET_NAME = props.getProperty('SHEET_NAME'); // シート名
+const SHEET_NAME = props.getProperty('SHEET_NAME');
+const DRIVE_FOLDER_ID = props.getProperty('DRIVE_FOLDER_ID'); // 画像フォルダID
 
 /**
  * 型定義（参考用 - GASではTypeScriptの型は使えませんが、コメントとして残しています）
  *
+ * // ポートフォリオアイテム (?action=items)
  * type ApiResponseItem = {
  *   id: number;      // ループのインデックス番号（0始まり）
  *   date: string;    // 日付
@@ -20,6 +22,13 @@ const SHEET_NAME = props.getProperty('SHEET_NAME'); // シート名
  *     url: string;
  *   }[];
  *   isCommision: boolean;
+ * };
+ *
+ * // 画像データ (?action=images)
+ * type ImageData = {
+ *   name: string;     // ファイル名（拡張子なし）
+ *   mimeType: string; // MIMEタイプ (image/png等)
+ *   data: string;     // Base64エンコードされた画像データ
  * };
  *
  * スプレッドシートの固定カラム（0-indexed）:
@@ -40,20 +49,32 @@ const SHEET_NAME = props.getProperty('SHEET_NAME'); // シート名
 
 /**
  * GETリクエストを処理するエンドポイント
+ *
+ * クエリパラメータ:
+ * - action=items (デフォルト): ポートフォリオアイテムを取得
+ * - action=images: Google Driveフォルダ内の画像を一括取得
  */
 function doGet(e) {
   try {
-    // CORSヘッダーを設定
     const output = ContentService.createTextOutput();
     output.setMimeType(ContentService.MimeType.JSON);
-    
-    // スプレッドシートからデータを取得
-    const items = getPortfolioItems();
 
-    // 全アイテムを返す
-    output.setContent(JSON.stringify(items));
+    const action = (e && e.parameter && e.parameter.action) || 'items';
+
+    let result;
+    switch (action) {
+      case 'images':
+        result = getDriveImages();
+        break;
+      case 'items':
+      default:
+        result = getPortfolioItems();
+        break;
+    }
+
+    output.setContent(JSON.stringify(result));
     return output;
-    
+
   } catch (error) {
     Logger.log('Error in doGet: ' + error.toString());
     return createErrorResponse('Internal server error: ' + error.toString(), 500);
@@ -127,6 +148,58 @@ function getPortfolioItems() {
     }));
 
   return items;
+}
+
+/**
+ * Google Driveフォルダから画像を一括取得
+ *
+ * GitHub Actionsから呼び出されることを想定
+ * DRIVE_FOLDER_IDはスクリプトプロパティで設定
+ *
+ * @returns {Array<{name: string, mimeType: string, data: string}>}
+ *   - name: ファイル名（拡張子なし）
+ *   - mimeType: MIMEタイプ (image/png, image/jpeg等)
+ *   - data: Base64エンコードされた画像データ
+ */
+function getDriveImages() {
+  if (!DRIVE_FOLDER_ID) {
+    throw new Error('DRIVE_FOLDER_ID is not set in script properties');
+  }
+
+  const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+  const files = folder.getFiles();
+  const images = [];
+
+  // 画像ファイルのMIMEタイプ
+  const imageMimeTypes = [
+    'image/png',
+    'image/jpeg',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml'
+  ];
+
+  while (files.hasNext()) {
+    const file = files.next();
+    const mimeType = file.getMimeType();
+
+    // 画像ファイルのみ処理
+    if (imageMimeTypes.includes(mimeType)) {
+      const blob = file.getBlob();
+      const base64Data = Utilities.base64Encode(blob.getBytes());
+      const fileName = file.getName();
+      // 拡張子を除いたファイル名
+      const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+
+      images.push({
+        name: nameWithoutExt,
+        mimeType: mimeType,
+        data: base64Data
+      });
+    }
+  }
+
+  return images;
 }
 
 /**
