@@ -97,7 +97,7 @@ function getPortfolioItems() {
   }
 
   // 固定カラム数（パフォーマンス最適化のため固定値を使用）
-  const COLUMN_COUNT = 13;
+  const COLUMN_COUNT = 14;
 
   // 固定カラムインデックス（ヘッダー行の名前に対応）
   const COL = {
