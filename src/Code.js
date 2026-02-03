@@ -10,6 +10,7 @@ const SHEET_NAME = props.getProperty('SHEET_NAME'); // シート名
  *
  * type ApiResponseItem = {
  *   id: number;      // ループのインデックス番号（0始まり）
+ *   date: string;    // 日付
  *   title: string;
  *   description: string;
  *   imageUrl: string;
@@ -22,18 +23,19 @@ const SHEET_NAME = props.getProperty('SHEET_NAME'); // シート名
  * };
  *
  * スプレッドシートの固定カラム（0-indexed）:
- * 0: title
- * 1: description
- * 2: imageUrl
- * 3: tags
- * 4: isCommision
- * 5: Amazon (リンク)
- * 6: DLsite (リンク)
- * 7: 公式サイト (リンク)
- * 8: Youtube (リンク)
- * 9: ニコニコ (リンク)
- * 10: メロンブックス (リンク)
- * 11: リンク (リンク)
+ * 0: date
+ * 1: title
+ * 2: description
+ * 3: imageUrl
+ * 4: tags
+ * 5: isCommision
+ * 6: Amazon (リンク)
+ * 7: DLsite (リンク)
+ * 8: 公式サイト (リンク)
+ * 9: Youtube (リンク)
+ * 10: ニコニコ (リンク)
+ * 11: メロンブックス (リンク)
+ * 12: リンク (リンク)
  */
 
 /**
@@ -74,22 +76,23 @@ function getPortfolioItems() {
   }
 
   // 固定カラム数（パフォーマンス最適化のため固定値を使用）
-  const COLUMN_COUNT = 12;
+  const COLUMN_COUNT = 13;
 
   // 固定カラムインデックス（ヘッダー行の名前に対応）
   const COL = {
-    title: 1,
-    description: 2,
-    imageUrl: 3,
-    tags: 4,
-    isCommision: 5,
-    Amazon: 6,
-    DLsite: 7,
-    公式サイト: 8,
-    Youtube: 9,
-    ニコニコ: 10,
-    メロンブックス: 11,
-    リンク: 12
+    date: 1,
+    title: 2,
+    description: 3,
+    imageUrl: 4,
+    tags: 5,
+    isCommision: 6,
+    Amazon: 7,
+    DLsite: 8,
+    公式サイト: 9,
+    Youtube: 10,
+    ニコニコ: 11,
+    メロンブックス: 12,
+    リンク: 13
   };
 
   // データ範囲を取得
@@ -109,6 +112,7 @@ function getPortfolioItems() {
     .filter(row => row[COL.title] !== undefined && row[COL.title] !== '')
     .map((row, index) => ({
       id: index,
+      date: formatDate(row[COL.date]),
       title: String(row[COL.title] || ''),
       description: String(row[COL.description] || ''),
       imageUrl: String(row[COL.imageUrl] || ''),
@@ -126,12 +130,24 @@ function getPortfolioItems() {
 }
 
 /**
+ * 日付をフォーマット
+ * スプレッドシートのDate型またはstring型を文字列に変換
+ */
+function formatDate(dateValue) {
+  if (!dateValue) return '';
+  if (dateValue instanceof Date) {
+    return Utilities.formatDate(dateValue, 'Asia/Tokyo', 'yyyy-MM-dd');
+  }
+  return String(dateValue);
+}
+
+/**
  * タグ文字列を配列にパース
  * 例: "React, TypeScript, GAS" -> ["React", "TypeScript", "GAS"]
  */
 function parseTags(tagsString) {
   if (!tagsString) return [];
-  
+
   return String(tagsString)
     .split(',')
     .map(tag => tag.trim())
